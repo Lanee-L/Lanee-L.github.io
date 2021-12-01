@@ -27,13 +27,14 @@
 <meta property="og:site_name" content="Lanee">
 <meta property="og:description" content="Hexo 用的是 markdown 语法标题是每篇文章都需要也是最常用的格式，在 Markdown 中，如果一段文字被定义为标题，只要在这段文字前加 # 号即可。就像这样hh 列表熟悉 HTML 的肯定知道有序列表与无序列表的区别，在 Markdown 下，列表的显示只需要在文字前加上 - 或 * 即可变为无序列表，有序列表则直接在文字前加 1. 2. 3. 符号要和文字之间加上一个字符的空格。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2021/12/01/hexo%E6%96%87%E7%AB%A0%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87/image.jpg">
 <meta property="og:image" content="http://example.com/2021/12/01/hexo%E6%96%87%E7%AB%A0%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87/background.png">
+<meta property="og:image" content="http://example.com/2021/12/01/hexo%E6%96%87%E7%AB%A0%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87/image.jpg">
+<meta property="og:image" content="http://example.com/2021/12/01/hexo%E6%96%87%E7%AB%A0%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87/image.jpg">
 <meta property="article:published_time" content="2021-12-01T05:49:13.000Z">
-<meta property="article:modified_time" content="2021-12-01T06:32:03.274Z">
+<meta property="article:modified_time" content="2021-12-01T06:37:18.785Z">
 <meta property="article:author" content="Lanee">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/12/01/hexo%E6%96%87%E7%AB%A0%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87/image.jpg">
+<meta name="twitter:image" content="http://example.com/2021/12/01/hexo%E6%96%87%E7%AB%A0%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87/background.png">
 
 <link rel="canonical" href="http://example.com/2021/12/01/hexo%E6%96%87%E7%AB%A0%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87/">
 
@@ -192,7 +193,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2021-12-01 13:49:13 / 修改时间：14:32:03" itemprop="dateCreated datePublished" datetime="2021-12-01T13:49:13+08:00">2021-12-01</time>
+              <time title="创建时间：2021-12-01 13:49:13 / 修改时间：14:37:18" itemprop="dateCreated datePublished" datetime="2021-12-01T13:49:13+08:00">2021-12-01</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -221,11 +222,9 @@
 <blockquote>
 <p>这是引用</p>
 </blockquote>
-<h1 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h1><blockquote>
-<p><img src="image.jpg"><br>如果希望图片在文章和首页中同时显示，可以使用标签插件语法。</p>
-
-</blockquote>
+<h1 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h1><p><code>![](image.jpg)</code><br>如果希望图片在文章和首页中同时显示，可以使用标签插件语法。<br><code>&#123;% asset_img image.jpg This is an image %&#125;</code></p>
 <img src="/2021/12/01/hexo%E6%96%87%E7%AB%A0%E6%B7%BB%E5%8A%A0%E5%9B%BE%E7%89%87/background.png" class="" title="This is an image">
+<p><img src="image.jpg" alt="hexo-1.png"><br><img src="image.jpg" alt="hexo-2.png"></p>
 <hr>
 <h1 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h1><p>如果你是个程序猿，需要在文章里优雅的引用代码框，在 Markdown 下实现也非常简单，只需要用两个 ` 把中间的代码包裹起来。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">using namespace std;</span><br><span class="line">int main()&#123;</span><br><span class="line">    cout&lt;&lt;&#x27;hello world&#x27;&lt;&lt;endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
