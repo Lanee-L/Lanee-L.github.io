@@ -162,6 +162,82 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/25/opencascade-gltf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Lanee">
+      <meta itemprop="description" content="简言">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lanee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/03/25/opencascade-gltf/" class="post-title-link" itemprop="url">opencascade gltf</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-03-25 16:00:19 / 修改时间：16:02:24" itemprop="dateCreated datePublished" datetime="2022-03-25T16:00:19+08:00">2022-03-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/opencascade/" itemprop="url" rel="index"><span itemprop="name">opencascade</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>#关于OPENCASCADE中的GLTF模型的导出</p>
+<p>glTF格式本质上是一个JSON文件。 这一文件描述了整个3D场景的内容。 它包含了对场景结构进行描述的场景图。 场景中的3D对象通过场景结点引用网格进行定义。<br>glTF详情可参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_31709249/article/details/86477520">https://blog.csdn.net/qq_31709249/article/details/86477520</a></p>
+<p>在opencascade中，实现gltf导出的类为RWGltf_CafWriter，欲使用此类，需要使用到XCAFDoc相关内容。本人理解中的gltf在opencascade中的导出即是将想要导出的内容通过各种方法操作填充到一个TDocStd_Document中，为此需要准备的XCAFDoc操作类基本有<br>1.XCAFDoc_ShapeTool——用于添加Shape并进行Shape相关操作<br>2.XCAFDoc_ColorTool——用于进行颜色相关操作<br>3.XCAFDoc_MaterialTool——用于定义物体的材质等等（注意：此处的材质指的是密度等，在视觉方面无影响）<br>4.XCAFDoc_VisMaterialTool——定义材质属性（可用的有标准光照属性与pbr光照属性）</p>
+<p>本文重点介绍如何设置一般光照相关的属性并将其赋予TopoDS_Shape</p>
+<p>首先初始化一个XCAFDoc_VisMaterial类mat，此mat将会用于定义材质属性与渲染模式以及最终赋予需要的TopoDS_Shape。<br>然后我们需要一个XCAFDoc_VisMaterialCommon类mac，及基本的材质属性（非pbr），我们将在此类中进行texture、diffusecolor等等的定义。<br>需要注意的是，在定义XCAFDoc_VisMaterialCommon时，一定一定一定要确保IsDefined被设置为TRUE（默认为FALSE），否则一切对此类的操作都不会生效。<br>完成mac的参数设置后，我们将mac赋予mat：mat-&gt;SetCommonMaterial(mac);<br>最后，我们使用XCAFDoc_VisMaterialTool将设置好的mat赋给需要的TopoDS_Shape：VT-&gt;SetShapeMaterial(myobject.shape, VT-&gt;AddMaterial(mat1, “somemessage”))<br>至此，我们就完成了对需要输出的shape的材质、贴图等的设置。</p>
+<p>在输出gltf文件时，我们应向对shape进行处理，使他完成模型格式之间的转换</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Handle(Prs3d_Drawer) aDrawer = new Prs3d_Drawer(); // holds visualization defaults</span><br><span class="line">aDrawer-&gt;ClearLocalAttributes();</span><br><span class="line">aDrawer-&gt;SetupOwnShadingAspect();</span><br><span class="line">BRepMesh_IncrementalMesh anAlgo;</span><br><span class="line">anAlgo.ChangeParameters().Deflection = StdPrs_ToolTriangulatedShape::GetDeflection(myComp, aDrawer);</span><br><span class="line">anAlgo.ChangeParameters().Angle = 20.0 * M_PI / 180.0; // 20 degrees</span><br><span class="line">anAlgo.ChangeParameters().InParallel = true;</span><br><span class="line">anAlgo.SetShape(myComp);</span><br><span class="line">anAlgo.Perform();</span><br></pre></td></tr></table></figure>
+<p>最后使用RWGltf_CafWriter完成输出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">TColStd_IndexedDataMapOfStringString gltfMetaData;</span><br><span class="line">RWGltf_CafWriter aGltfWriter(gltfName, Standard_False);</span><br><span class="line">aGltfWriter.ChangeCoordinateSystemConverter().SetInputLengthUnit(0.001);</span><br><span class="line">        aGltfWriter.ChangeCoordinateSystemConverter().SetInputCoordinateSystem(RWMesh_CoordinateSystem_Zup);</span><br><span class="line">aGltfWriter.SetTransformationFormat(RWGltf_WriterTrsfFormat_Compact);    if (!aGltfWriter.Perform(doc, gltfMetaData, Message_ProgressRange())) &#123; std::cout &lt;&lt; &quot;export error\n&quot;; &#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/09/opencascade%E5%BC%80%E5%90%AF%E5%85%89%E8%BF%BD/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -597,7 +673,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
