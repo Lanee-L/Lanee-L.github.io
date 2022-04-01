@@ -162,6 +162,77 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/04/01/opencascade%E8%AF%BB%E5%8F%96gltf/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Lanee">
+      <meta itemprop="description" content="简言">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lanee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/01/opencascade%E8%AF%BB%E5%8F%96gltf/" class="post-title-link" itemprop="url">opencascade读取gltf</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-01 17:24:53 / 修改时间：17:26:02" itemprop="dateCreated datePublished" datetime="2022-04-01T17:24:53+08:00">2022-04-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/opencascade/" itemprop="url" rel="index"><span itemprop="name">opencascade</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>opencascade中的gltf导入功能主要由RWGltf_CafReader类负责，读取方式与读取step文件相似。大致可以分为读取shape与读取material两个部分。<br>gltf文件的读取思路为：1、创建TDocStd_Document文档，并使用RWGltf_CafReader对空文档进行设置，使之后读取的gltf文件相关数据填充到文档中，之后使用XCAFDoc_ShapeTool类读取文档中Shape相关信息、用XCAFDoc_VisMaterialTool读取文档中材质相关信息。读取思路为遍历文档中的Label节点，读取Label中的attribute。最终将读取得到的shape存储在TopoDS_Compound 变量中，将读取得到的Vis信息存储到XCAFDoc_VisMaterial变量中，将透明度、材质等信息存储在XCAFDoc_VisMaterialCommon中。<br>关键代码如下：<br>1、shape读取</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">for (TDF_LabelSequence::Iterator aRootIter(aRootLabels); aRootIter.More(); aRootIter.Next())</span><br><span class="line">    &#123;</span><br><span class="line">        const TDF_Label&amp; aRootLabel = aRootIter.Value();</span><br><span class="line">        TopoDS_Shape aRootShape;</span><br><span class="line">        Handle(XCAFDoc_VisMaterial) mat = new XCAFDoc_VisMaterial;</span><br><span class="line">        //Handle(XCAFDoc_VisMaterialCommon) mac = new XCAFDoc_VisMaterialCommon;</span><br><span class="line">        if (aRootLabel.IsNull()) &#123;</span><br><span class="line">            std::cout &lt;&lt; &quot;aRootLabel is null&quot; &lt;&lt; std::endl;</span><br><span class="line">        &#125;</span><br><span class="line">        else &#123;</span><br><span class="line">            std::cout &lt;&lt; &quot;aRootLabel isn&#x27;t null&quot; &lt;&lt; std::endl;</span><br><span class="line">        &#125;</span><br><span class="line">        if (XCAFDoc_ShapeTool::GetShape(aRootLabel, aRootShape))</span><br><span class="line">        &#123;</span><br><span class="line">            aBuildTool.Add(aCompound, aRootShape);</span><br><span class="line">            //mat = VT-&gt;GetShapeMaterial(aRootLabel);</span><br><span class="line">            //Standard_ShortReal a = mat-&gt;CommonMaterial().Transparency;</span><br><span class="line">            //std::cout &lt;&lt; a &lt;&lt; std::endl;</span><br><span class="line">            TDF_Label matLabel;</span><br><span class="line">            std::cout &lt;&lt; &quot;get a shape from gltf&quot; &lt;&lt; std::endl;</span><br><span class="line">            </span><br><span class="line">        &#125;</span><br><span class="line">        else &#123;</span><br><span class="line">            std::cout &lt;&lt; &quot;can&#x27;t get the shape from gltf&quot; &lt;&lt; std::endl;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>2、material读取</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">for (TDF_LabelSequence::Iterator aRootIter(bRootLabels); aRootIter.More(); aRootIter.Next())</span><br><span class="line">    &#123;</span><br><span class="line">        const TDF_Label&amp; bRootLabel = aRootIter.Value();</span><br><span class="line">        //TDF_Label matLabel;</span><br><span class="line">        Handle(XCAFDoc_VisMaterial) mat = new XCAFDoc_VisMaterial;</span><br><span class="line">        //Handle(XCAFDoc_VisMaterialCommon) mac = new XCAFDoc_VisMaterialCommon;</span><br><span class="line">        Handle(TDF_Label) matLabel ;</span><br><span class="line">        /**/</span><br><span class="line">        Handle(TDataStd_TreeNode) aNode;</span><br><span class="line">        </span><br><span class="line">        if(bRootLabel.FindAttribute(XCAFDoc::VisMaterialRefGUID(), aNode))&#123;</span><br><span class="line">            //mat=VT-&gt;GetMaterial(aNode-&gt;Father()-&gt;Label());</span><br><span class="line">            std::cout &lt;&lt; &quot;get a label from gltf&quot; &lt;&lt; std::endl;</span><br><span class="line">            std::cout &lt;&lt;  std::endl;</span><br><span class="line">            mat = VT-&gt;GetMaterial(bRootLabel);</span><br><span class="line">            XCAFDoc_VisMaterialCommon mac = XCAFDoc_VisMaterialCommon();</span><br><span class="line">            mac = mat-&gt;ConvertToCommonMaterial();</span><br><span class="line">            if (true) &#123;</span><br><span class="line">                std::cout &lt;&lt; &quot;混合方式为&quot;;</span><br><span class="line">                std::cout &lt;&lt; mat-&gt;AlphaMode() &lt;&lt; std::endl;</span><br><span class="line">                std::cout &lt;&lt; &quot;是否具有commonmaterial   &quot;;</span><br><span class="line">                std::cout &lt;&lt; mac.IsDefined &lt;&lt; std::endl;</span><br><span class="line">                std::cout &lt;&lt; &quot;透明度为：&quot;;</span><br><span class="line">                std::cout &lt;&lt; mac.Transparency &lt;&lt; std::endl;</span><br><span class="line">                std::cout &lt;&lt; &quot;贴图地址：&quot;;</span><br><span class="line">                std::cout &lt;&lt; mac.DiffuseTexture-&gt;FilePath() &lt;&lt; std::endl;</span><br><span class="line">                </span><br><span class="line">            &#125;</span><br><span class="line">            else &#123;</span><br><span class="line">                std::cout &lt;&lt; &quot;error::can&#x27;t get label from gltf&quot; &lt;&lt; std::endl;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        else &#123;</span><br><span class="line">            std::cout &lt;&lt; &quot;can&#x27;t get a label from gltf!&quot; &lt;&lt; std::endl;</span><br><span class="line">        &#125;</span><br><span class="line">        //mat = VT-&gt;GetShapeMaterial(aRootLabel);</span><br><span class="line"></span><br><span class="line">        </span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2022/04/01/unity%E6%A8%A1%E5%9E%8B%E8%BD%AE%E5%BB%93/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -354,10 +425,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-03-25 16:00:19 / 修改时间：16:02:24" itemprop="dateCreated datePublished" datetime="2022-03-25T16:00:19+08:00">2022-03-25</time>
+              <time title="创建时间：2022-03-25 16:00:19" itemprop="dateCreated datePublished" datetime="2022-03-25T16:00:19+08:00">2022-03-25</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-01 17:26:21" itemprop="dateModified" datetime="2022-04-01T17:26:21+08:00">2022-04-01</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -379,8 +456,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>#关于OPENCASCADE中的GLTF模型的导出</p>
-<p>glTF格式本质上是一个JSON文件。 这一文件描述了整个3D场景的内容。 它包含了对场景结构进行描述的场景图。 场景中的3D对象通过场景结点引用网格进行定义。<br>glTF详情可参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_31709249/article/details/86477520">https://blog.csdn.net/qq_31709249/article/details/86477520</a></p>
+          <h1 id="关于OPENCASCADE中的GLTF模型的导出"><a href="#关于OPENCASCADE中的GLTF模型的导出" class="headerlink" title="关于OPENCASCADE中的GLTF模型的导出"></a>关于OPENCASCADE中的GLTF模型的导出</h1><p>glTF格式本质上是一个JSON文件。 这一文件描述了整个3D场景的内容。 它包含了对场景结构进行描述的场景图。 场景中的3D对象通过场景结点引用网格进行定义。<br>glTF详情可参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_31709249/article/details/86477520">https://blog.csdn.net/qq_31709249/article/details/86477520</a></p>
 <p>在opencascade中，实现gltf导出的类为RWGltf_CafWriter，欲使用此类，需要使用到XCAFDoc相关内容。本人理解中的gltf在opencascade中的导出即是将想要导出的内容通过各种方法操作填充到一个TDocStd_Document中，为此需要准备的XCAFDoc操作类基本有<br>1.XCAFDoc_ShapeTool——用于添加Shape并进行Shape相关操作<br>2.XCAFDoc_ColorTool——用于进行颜色相关操作<br>3.XCAFDoc_MaterialTool——用于定义物体的材质等等（注意：此处的材质指的是密度等，在视觉方面无影响）<br>4.XCAFDoc_VisMaterialTool——定义材质属性（可用的有标准光照属性与pbr光照属性）</p>
 <p>本文重点介绍如何设置一般光照相关的属性并将其赋予TopoDS_Shape</p>
 <p>首先初始化一个XCAFDoc_VisMaterial类mat，此mat将会用于定义材质属性与渲染模式以及最终赋予需要的TopoDS_Shape。<br>然后我们需要一个XCAFDoc_VisMaterialCommon类mac，及基本的材质属性（非pbr），我们将在此类中进行texture、diffusecolor等等的定义。<br>需要注意的是，在定义XCAFDoc_VisMaterialCommon时，一定一定一定要确保IsDefined被设置为TRUE（默认为FALSE），否则一切对此类的操作都不会生效。<br>完成mac的参数设置后，我们将mac赋予mat：mat-&gt;SetCommonMaterial(mac);<br>最后，我们使用XCAFDoc_VisMaterialTool将设置好的mat赋给需要的TopoDS_Shape：VT-&gt;SetShapeMaterial(myobject.shape, VT-&gt;AddMaterial(mat1, “somemessage”))<br>至此，我们就完成了对需要输出的shape的材质、贴图等的设置。</p>
@@ -842,7 +918,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
