@@ -162,6 +162,97 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/04/01/unity%E6%A8%A1%E5%9E%8B%E8%BD%AE%E5%BB%93/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Lanee">
+      <meta itemprop="description" content="简言">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lanee">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/01/unity%E6%A8%A1%E5%9E%8B%E8%BD%AE%E5%BB%93/" class="post-title-link" itemprop="url">unity模型轮廓</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-01 13:19:37 / 修改时间：13:25:20" itemprop="dateCreated datePublished" datetime="2022-04-01T13:19:37+08:00">2022-04-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/unity/" itemprop="url" rel="index"><span itemprop="name">unity</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="Unity绘制物体外轮廓"><a href="#Unity绘制物体外轮廓" class="headerlink" title="Unity绘制物体外轮廓"></a>Unity绘制物体外轮廓</h1><p>1.深度获取轮廓：<br>对一个点以及它附近的点进行深度采样，并比较它们的值的差异，若差异过大，则将其判定为轮廓线：<br>采样坐标如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">float halfScaleFloor = floor(_Scale * 0.5);</span><br><span class="line">float halfScaleCeil = ceil(_Scale * 0.5);</span><br><span class="line"></span><br><span class="line">float2 bottomLeftUV = i.texcoord - float2(_MainTex_TexelSize.x, _MainTex_TexelSize.y) * halfScaleFloor;</span><br><span class="line">float2 topRightUV = i.texcoord + float2(_MainTex_TexelSize.x, _MainTex_TexelSize.y) * halfScaleCeil;  </span><br><span class="line">float2 bottomRightUV = i.texcoord + float2(_MainTex_TexelSize.x * halfScaleCeil, -_MainTex_TexelSize.y * halfScaleFloor);</span><br><span class="line">float2 topLeftUV = i.texcoord + float2(-_MainTex_TexelSize.x * halfScaleFloor, _MainTex_TexelSize.y * halfScaleCeil);</span><br></pre></td></tr></table></figure>
+<p>得到采样坐标之后，我们用这个坐标在camera渲染好的深度纹理中进行采样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">float depth0 = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, bottomLeftUV).r;</span><br><span class="line">float depth1 = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, topRightUV).r;</span><br><span class="line">float depth2 = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, bottomRightUV).r;</span><br><span class="line">float depth3 = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, topLeftUV).r;</span><br></pre></td></tr></table></figure>
+<p>再对其进行深度值差异的计算：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">float depthFiniteDifference0 = depth1 - depth0;</span><br><span class="line">float depthFiniteDifference1 = depth3 - depth2;</span><br></pre></td></tr></table></figure>
+<p>返回计算的结果可以得到基于深度的物体轮廓如图：<br>    <img src="/2022/04/01/unity%E6%A8%A1%E5%9E%8B%E8%BD%AE%E5%BB%93/depth1.png" class="" title="This is an image"><br>为得到depthFiniteDifference0和depthFiniteDifference1的混合结果，我们可以使用max方法，但在此我们选择使用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float edgeDepth = sqrt(pow(depthFiniteDifference0, 2) + pow(depthFiniteDifference1, 2)) * 100;</span><br></pre></td></tr></table></figure>
+<p>截取：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">float depthThreshold = _DepthThreshold * depth0;    //基于深度</span><br><span class="line">edgeDepth = edgeDepth &gt; depthThreshold ? 1 : 0;</span><br></pre></td></tr></table></figure>
+
+<p>至此，我们就得到了一个较为清晰的，基于深度的轮廓。<br>2.法线轮廓获取：<br>法线轮廓获取的思路大致与深度相同，首先我们需要得到法线贴图的采样坐标并对法线纹理进行采样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">float3 normal0 = SAMPLE_TEXTURE2D(_CameraNormalsTexture, sampler_CameraNormalsTexture, bottomLeftUV).rgb;</span><br><span class="line">float3 normal1 = SAMPLE_TEXTURE2D(_CameraNormalsTexture, sampler_CameraNormalsTexture, topRightUV).rgb;</span><br><span class="line">float3 normal2 = SAMPLE_TEXTURE2D(_CameraNormalsTexture, sampler_CameraNormalsTexture, bottomRightUV).rgb;</span><br><span class="line">float3 normal3 = SAMPLE_TEXTURE2D(_CameraNormalsTexture, sampler_CameraNormalsTexture, topLeftUV).rgb;</span><br></pre></td></tr></table></figure>
+<p>得到法线值的差异并将结果混合：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">float3 normalFiniteDifference0 = normal1 - normal0;</span><br><span class="line">float3 normalFiniteDifference1 = normal3 - normal2;</span><br><span class="line">float edgeNormal = sqrt(dot(normalFiniteDifference0, normalFiniteDifference0) + dot(normalFiniteDifference1, normalFiniteDifference1));</span><br></pre></td></tr></table></figure>
+<p>截取：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">edgeNormal = edgeNormal &gt; _NormalThreshold ? 1 : 0;</span><br></pre></td></tr></table></figure>
+<p>得到的结果如图：<br>    <img src="/2022/04/01/unity%E6%A8%A1%E5%9E%8B%E8%BD%AE%E5%BB%93/normal1.png" class="" title="This is an image"></p>
+<p>最后我们将法线结果与深度结果混合，得到一个还算不错的结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">float edge = max(edgeDepth,edgeNormal);</span><br></pre></td></tr></table></figure>
+<p>如图：<br>    <img src="/2022/04/01/unity%E6%A8%A1%E5%9E%8B%E8%BD%AE%E5%BB%93/result1.png" class="" title="This is an image"></p>
+<p>但我们的轮廓上还有一些surface artifacts，这是由depthThreshold引起的，为解决这个问题，我们需要让depthThreshold的值随着视线方向与模型法线方向的夹角的变化而变化</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">float3 viewNormal = normal0 * 2 -1;</span><br><span class="line">float NdotV = 1 - dot(viewNormal,-i.viewSpaceDir); </span><br><span class="line">float normalThreshold01 = saturate((NdotV - _DepthNormalThreshold) / (1 - _DepthNormalThreshold));</span><br><span class="line">float normalThreshold = normalThreshold01 * _DepthNormalThresholdScale + 1;</span><br></pre></td></tr></table></figure>
+<p>最终结果如图：<br>    <img src="/2022/04/01/unity%E6%A8%A1%E5%9E%8B%E8%BD%AE%E5%BB%93/fin.png" class="" title="This is an image"></p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2022/03/29/%E2%80%9Cunity%E6%B7%B1%E5%BA%A6%E7%BA%B9%E7%90%86%E9%87%8D%E5%BB%BA%E4%B8%96%E7%95%8C%E5%9D%90%E6%A0%87%E2%80%9D/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -751,7 +842,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
